@@ -44,6 +44,7 @@ class wkhtmltox(object):
 
         if options is not None: self.options.update(options)
 
+        self.css=css
         if css:
             self._prepend_css(css)
 
