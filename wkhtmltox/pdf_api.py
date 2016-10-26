@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from .pdfkit import PDFKit
-from .pdfkit import Configuration
+from .wkhtmltopdf import wkhtmltopdf
 
 
-def from_url(url, output_path, options=None, toc=None, cover=None,
+def pdf_from_url(url, output_path, options=None, toc=None, cover=None,
              configuration=None, cover_first=False):
     """
     Convert file of files from URLs to PDF document
@@ -14,19 +13,19 @@ def from_url(url, output_path, options=None, toc=None, cover=None,
     :param options: (optional) dict with wkhtmltopdf global and page options, with or w/o '--'
     :param toc: (optional) dict with toc-specific wkhtmltopdf options, with or w/o '--'
     :param cover: (optional) string with url/filename with a cover html page
-    :param configuration: (optional) instance of pdfkit.configuration.Configuration()
+    :param configuration: (optional) instance of wkhtmltopdf.configuration.Configuration()
     :param configuration_first: (optional) if True, cover always precedes TOC
 
     Returns: True on success
     """
 
-    r = PDFKit(url, 'url', options=options, toc=toc, cover=cover,
+    r = wkhtmltopdf(url, 'url', options=options, toc=toc, cover=cover,
                configuration=configuration, cover_first=cover_first)
 
-    return r.to_pdf(output_path)
+    return r.execute(output_path)
 
 
-def from_file(input, output_path, options=None, toc=None, cover=None, css=None,
+def pdf_from_file(input, output_path, options=None, toc=None, cover=None, css=None,
               configuration=None, cover_first=False):
     """
     Convert HTML file or files to PDF document
@@ -37,19 +36,19 @@ def from_file(input, output_path, options=None, toc=None, cover=None, css=None,
     :param toc: (optional) dict with toc-specific wkhtmltopdf options, with or w/o '--'
     :param cover: (optional) string with url/filename with a cover html page
     :param css: (optional) string with path to css file which will be added to a single input file
-    :param configuration: (optional) instance of pdfkit.configuration.Configuration()
+    :param configuration: (optional) instance of wkhtmltopdf.configuration.Configuration()
     :param configuration_first: (optional) if True, cover always precedes TOC
 
     Returns: True on success
     """
 
-    r = PDFKit(input, 'file', options=options, toc=toc, cover=cover, css=css,
+    r = wkhtmltopdf(input, 'file', options=options, toc=toc, cover=cover, css=css,
                configuration=configuration, cover_first=cover_first)
 
-    return r.to_pdf(output_path)
+    return r.execute(output_path)
 
 
-def from_string(input, output_path, options=None, toc=None, cover=None, css=None,
+def pdf_from_string(input, output_path, options=None, toc=None, cover=None, css=None,
                 configuration=None, cover_first=False):
     """
     Convert given string or strings to PDF document
@@ -60,24 +59,13 @@ def from_string(input, output_path, options=None, toc=None, cover=None, css=None
     :param toc: (optional) dict with toc-specific wkhtmltopdf options, with or w/o '--'
     :param cover: (optional) string with url/filename with a cover html page
     :param css: (optional) string with path to css file which will be added to a input string
-    :param configuration: (optional) instance of pdfkit.configuration.Configuration()
+    :param configuration: (optional) instance of wkhtmltopdf.configuration.Configuration()
     :param configuration_first: (optional) if True, cover always precedes TOC
 
     Returns: True on success
     """
 
-    r = PDFKit(input, 'string', options=options, toc=toc, cover=cover, css=css,
+    r = wkhtmltopdf(input, 'string', options=options, toc=toc, cover=cover, css=css,
                configuration=configuration, cover_first=cover_first)
 
-    return r.to_pdf(output_path)
-
-
-def configuration(**kwargs):
-    """
-    Constructs and returns a :class:`Configuration` with given options
-
-    :param wkhtmltopdf: path to binary
-    :param meta_tag_prefix: the prefix for ``pdfkit`` specific meta tags
-    """
-
-    return Configuration(**kwargs)
+    return r.execute(output_path)

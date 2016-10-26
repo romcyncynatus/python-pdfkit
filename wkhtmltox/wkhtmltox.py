@@ -4,7 +4,6 @@ import subprocess
 import sys
 from .source import Source
 from .configuration import Configuration
-from itertools import chain
 import io
 import codecs
 try:
@@ -14,7 +13,7 @@ except NameError:
     basestring = str
 
 
-class PDFKit(object):
+class wkhtmltox(object):
     """
     Main class that does all generation routine.
 
@@ -22,8 +21,6 @@ class PDFKit(object):
                        to convert
     :param type_: str - either 'url', 'file' or 'string'
     :param options: dict (optional) with wkhtmltopdf options, with or w/o '--'
-    :param toc: dict (optional) - toc-specific wkhtmltopdf options, with or w/o '--'
-    :param cover: str (optional) - url/filename with a cover html page
     :param configuration: (optional) instance of pdfkit.configuration.Configuration()
     """
 
@@ -36,13 +33,10 @@ class PDFKit(object):
         def __str__(self):
             return self.msg
 
-    def __init__(self, url_or_file, type_, options=None, toc=None, cover=None,
-                 css=None, configuration=None, cover_first=False):
-
+    def __init__(self, url_or_file, type_, options=None, css=None, configuration=None):
         self.source = Source(url_or_file, type_)
         self.configuration = (Configuration() if configuration is None
                               else configuration)
-        self.wkhtmltopdf = self.configuration.wkhtmltopdf.decode('utf-8')
 
         self.options = dict()
         if self.source.isString():
@@ -50,11 +44,8 @@ class PDFKit(object):
 
         if options is not None: self.options.update(options)
 
-        self.toc = {} if toc is None else toc
-        self.cover = cover
-        self.cover_first = cover_first
-        self.css = css
-        self.stylesheets = []
+        if css:
+            self._prepend_css(css)
 
     def _genargs(self, opts):
         """
@@ -72,32 +63,22 @@ class PDFKit(object):
             else:
                 yield optval
 
+    def _builtinargs(self):
+        raise NotImplementedError()
+
     def _command(self, path=None):
         """
         Generator of all command parts
         """
-        if self.css:
-            self._prepend_css(self.css)
-
-        yield self.wkhtmltopdf
+        yield self.executable
 
         for argpart in self._genargs(self.options):
             if argpart:
                 yield argpart
 
-        if self.cover and self.cover_first:
-            yield 'cover'
-            yield self.cover
-
-        if self.toc:
-            yield 'toc'
-            for argpart in self._genargs(self.toc):
-                if argpart:
-                    yield argpart
-
-        if self.cover and not self.cover_first:
-            yield 'cover'
-            yield self.cover
+        for argpart in self._builtinargs():
+            if argpart:
+                yield argpart
 
         # If the source is a string then we will pipe it into wkhtmltopdf
         # If the source is file-like then we will read from it and pipe it in
@@ -120,13 +101,13 @@ class PDFKit(object):
     def command(self, path=None):
         return list(self._command(path))
 
-    def to_pdf(self, path=None):
+    def execute(self, path=None):
         args = self.command(path)
 
         result = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
 
-        # If the source is a string then we will pipe it into wkhtmltopdf.
+        # If the source is a string then we will pipe it into wkhtmlto*.
         # If we want to add custom CSS to file then we read input file to
         # string and prepend css to it and then pass it to stdin.
         # This is a workaround for a bug in wkhtmltopdf (look closely in README)
@@ -142,7 +123,7 @@ class PDFKit(object):
 
         if 'cannot connect to X server' in stderr.decode('utf-8'):
             raise IOError('%s\n'
-                          'You will need to run whktmltopdf within a "virtual" X server.\n'
+                          'You will need to run whktmlto* within a "virtual" X server.\n'
                           'Go to the link above for more information\n'
                           'https://github.com/JazzCore/python-pdfkit/wiki/Using-wkhtmltopdf-without-X-server' % stderr.decode('utf-8'))
 
@@ -161,17 +142,17 @@ class PDFKit(object):
             return stdout
         else:
             try:
-                with codecs.open(path, encoding='utf-8') as f:
-                    # read 4 bytes to get PDF signature '%PDF'
-                    text = f.read(4)
+                with open(path, 'rb') as f:
+                    # read 3 bytes to get at least a basic signature
+                    text = f.read(3)
                     if text == '':
                         raise IOError('Command failed: %s\n'
-                                      'Check whhtmltopdf output without \'quiet\' '
+                                      'Check whhtmlto* output without \'quiet\' '
                                       'option' % ' '.join(args))
                     return True
             except IOError:
                 raise IOError('Command failed: %s\n'
-                              'Check whhtmltopdf output without \'quiet\' option' %
+                              'Check whhtmlto* output without \'quiet\' option' %
                               ' '.join(args))
 
     def _normalize_options(self, options):

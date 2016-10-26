@@ -4,12 +4,12 @@ from setuptools.command.test import test as TestCommand
 import re
 import os
 import sys
-import pdfkit
+import wkhtmltox
 
 class PyTest(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
-        self.test_args = ['pdfkit-tests.py']
+        self.test_args = ['wkhtmltox-tests.py']
         self.test_suite = True
     def run_tests(self):
         #import here, cause outside the eggs aren't loaded
@@ -27,16 +27,16 @@ def long_description():
     return rst + '\n\n' + open('HISTORY.rst').read()
 
 setup(
-    name='pdfkit',
-    version=pdfkit.__version__,
-    description=pdfkit.__doc__.strip(),
+    name='wkhtmltox',
+    version=wkhtmltox.__version__,
+    description=wkhtmltox.__doc__.strip(),
     long_description=long_description(),
-    download_url='https://github.com/JazzCore/python-pdfkit',
-    license=pdfkit.__license__,
+    download_url='https://github.com/romcyncynatus/python-wkhtmltox',
+    license=wkhtmltox.__license__,
     tests_require=['pytest'],
     cmdclass = {'test': PyTest},
-    packages=['pdfkit'],
-    author=pdfkit.__author__,
+    packages=['wkhtmltox'],
+    author=wkhtmltox.__author__,
     author_email='stgolovanov@gmail.com',
     classifiers=[
         'Programming Language :: Python',
